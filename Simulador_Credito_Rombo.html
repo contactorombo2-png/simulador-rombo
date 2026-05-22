@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de Crédito — Rombo Unicieo</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:Arial,sans-serif;background:#f5f7fa;padding:1.5rem;color:#0A1E5E}
+.sim{max-width:960px;margin:0 auto}
+.header{background:#0A1E5E;border-radius:12px;padding:1.25rem 1.5rem;margin-bottom:1rem}
+.header-title{color:#fff;font-size:16px;font-weight:600;margin-bottom:3px}
+.header-sub{color:#00C2E0;font-size:12px}
+.cyan-bar{height:3px;background:#00C2E0;border-radius:2px;margin-bottom:1rem}
+.inputs{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;margin-bottom:1rem}
+.inp-group{display:flex;flex-direction:column;gap:4px}
+.inp-group label{font-size:12px;color:#6B7A99;font-weight:500}
+.inp-group input,.inp-group select{font-size:13px;padding:8px 10px;border-radius:8px;border:1px solid #D0DCE8;background:#fff;color:#0A1E5E;width:100%}
+.inp-group input:focus,.inp-group select:focus{outline:2px solid #00C2E0;border-color:#00C2E0}
+.inp-group input[readonly]{background:#F7F9FC;color:#6B7A99;cursor:not-allowed}
+.nota{background:#E8F4FB;border:0.5px solid #B5D4F4;border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;font-size:12px;color:#0C447C}
+.nota strong{font-weight:600}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:8px;margin-bottom:1.25rem}
+.card{background:#F7F9FC;border-radius:8px;padding:.75rem 1rem;border:0.5px solid #D0DCE8}
+.card-label{font-size:11px;color:#6B7A99;margin-bottom:4px}
+.card-value{font-size:15px;font-weight:600;color:#0A1E5E}
+.card.highlight{background:#0A1E5E;border-color:#0A1E5E}
+.card.highlight .card-label{color:#00C2E0}
+.card.highlight .card-value{color:#fff}
+.tbl-wrap{overflow-x:auto;border-radius:8px;border:0.5px solid #D0DCE8}
+table{width:100%;border-collapse:collapse;font-size:12px}
+th{background:#0A1E5E;color:#fff;padding:10px 10px;text-align:right;font-weight:500;font-size:11px}
+th:first-child{text-align:center;width:40px}
+th:nth-child(2){text-align:center;width:100px}
+td{padding:8px 10px;border-bottom:0.5px solid #EEF3F8;color:#0A1E5E;text-align:right;font-size:12px}
+td:first-child{text-align:center;color:#6B7A99}
+td:nth-child(2){text-align:center}
+tr:nth-child(even) td{background:#F7F9FC}
+tr.total-row td{background:#0A1E5E;color:#fff;font-weight:600}
+.footer{margin-top:1rem;font-size:11px;color:#6B7A99;text-align:center}
+.section-title{font-size:12px;font-weight:600;color:#6B7A99;text-transform:uppercase;letter-spacing:.05em;margin-bottom:.5rem;margin-top:.75rem}
+</style>
+</head>
+<body>
+<div class="sim">
+  <div class="header">
+    <p class="header-title">ROMBO · Simulador de Crédito — Unicieo</p>
+    <p class="header-sub">Tasa mensual configurable · Financiación hasta 85% · Sin costos ocultos</p>
+  </div>
+
+  <p class="section-title">Datos del crédito</p>
+  <div class="inputs">
+    <div class="inp-group">
+      <label>Valor matrícula ($)</label>
+      <input type="number" id="matricula" value="18125036" step="1000">
+    </div>
+    <div class="inp-group">
+      <label>Valor a financiar ($)</label>
+      <input type="number" id="financiar" value="15406281" step="1000">
+    </div>
+    <div class="inp-group">
+      <label>% Cuota inicial (fijo)</label>
+      <input type="text" id="pct" value="15%" readonly style="background:#F7F9FC;color:#6B7A99;cursor:not-allowed">
+    </div>
+    <div class="inp-group">
+      <label>Gastos de plataforma ($)</label>
+      <input type="number" id="gastos" value="250000" step="1000">
+    </div>
+    <div class="inp-group">
+      <label>Tasa de interés mensual (%)</label>
+      <input type="number" id="tasa" value="1.8" step="0.1" min="0.1" max="10">
+    </div>
+    <div class="inp-group">
+      <label>Póliza estudiante ($)</label>
+      <input type="number" id="poliza" value="26378" step="1000">
+    </div>
+    <div class="inp-group">
+      <label>Total a pagar (calculado)</label>
+      <input type="text" id="totalHoy" readonly>
+    </div>
+  </div>
+
+  <div class="nota">
+    <strong>¿Cómo completar la legalización del crédito?</strong><br><br>
+    Para formalizar tu financiamiento, recuerda que debes realizar el pago de los siguientes conceptos de manera conjunta:<br><br>
+    &nbsp;&nbsp;✔ <strong>Cuota inicial</strong> (15% del valor de la matrícula)<br>
+    &nbsp;&nbsp;✔ <strong>Gastos de plataforma</strong><br>
+    &nbsp;&nbsp;✔ <strong>Póliza estudiantil</strong><br><br>
+    Tienes <strong>15 días calendario</strong> contados a partir de la aprobación para realizar este pago. Si no se efectúa dentro de este plazo, el crédito quedará vencido y el estudiante deberá iniciar nuevamente el proceso a través de la plataforma.
+  </div>
+
+  <p class="section-title">Configuración de pagos</p>
+  <div class="inputs">
+    <div class="inp-group">
+      <label>Número de cuotas</label>
+      <select id="cuotas">
+        <option value="3">3 meses</option>
+        <option value="4">4 meses</option>
+        <option value="5">5 meses</option>
+        <option value="6">6 meses</option>
+        <option value="7">7 meses</option>
+        <option value="8" selected>8 meses</option>
+        <option value="9">9 meses</option>
+        <option value="10">10 meses</option>
+        <option value="11">11 meses</option>
+        <option value="12">12 meses</option>
+        <option value="13">13 meses</option>
+        <option value="14">14 meses</option>
+        <option value="15">15 meses</option>
+        <option value="16">16 meses</option>
+        <option value="17">17 meses</option>
+        <option value="18">18 meses</option>
+      </select>
+    </div>
+    <div class="inp-group">
+      <label>Día de pago</label>
+      <select id="dia">
+        <option value="5">Día 5</option>
+        <option value="15">Día 15</option>
+        <option value="20" selected>Día 20</option>
+      </select>
+    </div>
+    <div class="inp-group">
+      <label>Mes de inicio</label>
+      <select id="mes">
+        <option value="1">Enero</option>
+        <option value="2">Febrero</option>
+        <option value="3">Marzo</option>
+        <option value="4">Abril</option>
+        <option value="5" selected>Mayo</option>
+        <option value="6">Junio</option>
+        <option value="7">Julio</option>
+        <option value="8">Agosto</option>
+        <option value="9">Septiembre</option>
+        <option value="10">Octubre</option>
+        <option value="11">Noviembre</option>
+        <option value="12">Diciembre</option>
+      </select>
+    </div>
+    <div class="inp-group">
+      <label>Año inicio</label>
+      <select id="anio">
+        <option value="2024">2024</option>
+        <option value="2025">2025</option>
+        <option value="2026" selected>2026</option>
+        <option value="2027">2027</option>
+        <option value="2028">2028</option>
+        <option value="2029">2029</option>
+        <option value="2030">2030</option>
+        <option value="2031">2031</option>
+        <option value="2032">2032</option>
+        <option value="2033">2033</option>
+        <option value="2034">2034</option>
+        <option value="2035">2035</option>
+        <option value="2036">2036</option>
+        <option value="2037">2037</option>
+        <option value="2038">2038</option>
+        <option value="2039">2039</option>
+        <option value="2040">2040</option>
+        <option value="2041">2041</option>
+        <option value="2042">2042</option>
+        <option value="2043">2043</option>
+        <option value="2044">2044</option>
+        <option value="2045">2045</option>
+        <option value="2046">2046</option>
+        <option value="2047">2047</option>
+        <option value="2048">2048</option>
+        <option value="2049">2049</option>
+        <option value="2050">2050</option>
+        <option value="2051">2051</option>
+        <option value="2052">2052</option>
+        <option value="2053">2053</option>
+        <option value="2054">2054</option>
+        <option value="2055">2055</option>
+        <option value="2056">2056</option>
+        <option value="2057">2057</option>
+        <option value="2058">2058</option>
+        <option value="2059">2059</option>
+        <option value="2060">2060</option>
+        <option value="2061">2061</option>
+        <option value="2062">2062</option>
+        <option value="2063">2063</option>
+        <option value="2064">2064</option>
+        <option value="2065">2065</option>
+        <option value="2066">2066</option>
+        <option value="2067">2067</option>
+        <option value="2068">2068</option>
+        <option value="2069">2069</option>
+        <option value="2070">2070</option>
+        <option value="2071">2071</option>
+        <option value="2072">2072</option>
+        <option value="2073">2073</option>
+        <option value="2074">2074</option>
+        <option value="2075">2075</option>
+        <option value="2076">2076</option>
+        <option value="2077">2077</option>
+        <option value="2078">2078</option>
+        <option value="2079">2079</option>
+        <option value="2080">2080</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="cyan-bar"></div>
+  <div class="cards" id="cards"></div>
+  <div class="tbl-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>N°</th>
+          <th>Fecha</th>
+          <th>Saldo inicial</th>
+          <th>Abono capital</th>
+          <th>Interés 1.8%</th>
+          <th>Cuota fija</th>
+          <th>Saldo final</th>
+        </tr>
+      </thead>
+      <tbody id="tbody"></tbody>
+    </table>
+  </div>
+  <p class="footer">Rombo · Gestión de Cartera Unicieo · contact@rombo.tech · 302-7528787 · www.rombo.tech</p>
+</div>
+<script>
+const fmt=v=>'$'+Math.round(v).toLocaleString('es-CO');
+const pad=n=>String(n).padStart(2,'0');
+
+document.getElementById('matricula').addEventListener('input',function(){
+  const mat=parseFloat(this.value)||0;
+  const pct=0.15;
+  document.getElementById('financiar').value=Math.round(mat*(1-pct));
+  calc();
+});
+
+
+function calc(){
+  const mat=parseFloat(document.getElementById('matricula').value)||0;
+  const pct=0.15;
+  const credito=parseFloat(document.getElementById('financiar').value)||Math.round(mat*(1-pct));
+  const gastos=parseFloat(document.getElementById('gastos').value)||0;
+  const poliza=parseFloat(document.getElementById('poliza').value)||0;
+  const n=parseInt(document.getElementById('cuotas').value);
+  const dia=parseInt(document.getElementById('dia').value);
+  const mes=parseInt(document.getElementById('mes').value)-1;
+  const anio=parseInt(document.getElementById('anio').value);
+  const tasa=(parseFloat(document.getElementById('tasa').value)||1.8)/100;
+  const cuotaIni=Math.round(mat*pct);
+  const totalHoy=cuotaIni+gastos+poliza;
+  document.getElementById('totalHoy').value=fmt(totalHoy);
+  const cuotaFija=Math.round(credito*tasa*Math.pow(1+tasa,n)/(Math.pow(1+tasa,n)-1));
+  let saldo=credito,totalCap=0,totalInt=0;
+  const rows=[];
+  for(let i=1;i<=n;i++){
+    const interes=Math.round(saldo*tasa);
+    const capital=i<n?cuotaFija-interes:saldo;
+    const cuota=i<n?cuotaFija:saldo+interes;
+    const sf=Math.max(0,saldo-capital);
+    const d=new Date(anio,mes+i-1,dia);
+    const fechaStr=pad(d.getDate())+'/'+pad(d.getMonth()+1)+'/'+d.getFullYear();
+    rows.push({i,fecha:fechaStr,si:saldo,cap:capital,int:interes,cuota,sf});
+    totalCap+=capital;totalInt+=interes;saldo=sf;
+  }
+  document.getElementById('cards').innerHTML=[
+    ['Valor matrícula',fmt(mat)],
+    ['Cuota inicial ('+Math.round(pct*100)+'%)',fmt(cuotaIni)],
+    ['Gastos plataforma',fmt(gastos)],
+    ['Póliza estudiante',fmt(poliza)],
+    ['Total a pagar',fmt(totalHoy),'highlight'],
+    ['Valor a financiar',fmt(credito)],
+    ['Cuota fija mensual',fmt(cuotaFija),'highlight'],
+    ['Total intereses',fmt(totalInt)],
+    ['Total a pagar',fmt(credito+totalInt)],
+  ].map(([l,v,cls=''])=>`<div class="card ${cls}"><div class="card-label">${l}</div><div class="card-value">${v}</div></div>`).join('');
+  document.getElementById('tbody').innerHTML=rows.map(r=>`<tr>
+    <td>${r.i}</td><td>${r.fecha}</td><td>${fmt(r.si)}</td><td>${fmt(r.cap)}</td><td>${fmt(r.int)}</td>
+    <td style="font-weight:600;color:#0A1E5E">${fmt(r.cuota)}</td><td>${fmt(r.sf)}</td>
+  </tr>`).join('')+`<tr class="total-row"><td colspan="2">Total</td><td></td><td>${fmt(totalCap)}</td><td>${fmt(totalInt)}</td><td>${fmt(totalCap+totalInt)}</td><td>—</td></tr>`;
+}
+['financiar','gastos','poliza','tasa','cuotas','dia','mes','anio'].forEach(id=>document.getElementById(id).addEventListener('input',calc));
+calc();
+</script>
+</body>
+</html>
